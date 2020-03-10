@@ -1,0 +1,22 @@
+<!doctype html>
+<title>yazlab</title>
+
+<!--
+<link rel="stylesheet" href="{{ 'dummy' }}">
+ -->
+
+<nav>
+<!--
+<h1><a href="{{ 'dummy' }}">yazlab</a></h1>
+-->
+</nav>
+
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>

@@ -1,0 +1,19 @@
+ 
+{% extends 'base.html' %}
+
+<!--
+    if data passed print data
+-->
+
+{% block content %}
+    <h2><a href="{{ url_for('admin_root') }}">home</a></h2>
+
+  <form method=post enctype=multipart/form-data>
+    <label for="title">book title</label>
+    <input name="title" id="title"  required>
+
+    <label for="file">book image</label>
+    <input type=file name=file>
+    <input type=submit value=Upload>
+  </form>
+{% endblock %}
