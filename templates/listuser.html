@@ -1,0 +1,17 @@
+ 
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2><a href="{{ url_for('admin_root') }}">home</a></h2>
+
+  <table style="width:100%">
+    {% for user in users %}
+      <tr>
+        <th>{{ user['username'] }}</th>
+        <th>{{ user['title'] }}</th>
+        <th>{{ user['borrow_date'] }}</th>
+
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

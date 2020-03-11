@@ -12,11 +12,23 @@ uyduruk görüntü işlemeli sözde kütüphane otomasyonu
 #### basic login mechanism
 #### understand request data flow
 #### templates
+#### database time zone ?
 
 ### snippets 
 postgres cli tool
 ```bash
 $ psql -d yazlab3 -h localhost -U mrk0
+```
+sqlalchemy raw sql bulk query, bindig
+```python
+    with engine.connect() as con:
+        data = ( { "Id": 1, "Name": "Audi", "Price": 52642 },
+                { "Id": 3, "Name": "Skoda", "Price": 9000 },
+        )
+        for line in data:
+            con.execute(text("""INSERT INTO Cars(Id, Name, Price) 
+                VALUES(:Id, :Name, :Price)"""), **line)
+        return ''
 ```
 
 #### Yönetici (Admin):
@@ -29,11 +41,11 @@ tarafından girilir. Sistem görüntü işleme algoritmalarını kullanarak resi
 #### Kullanıcı (User)
 Kitap arama, kitap alıp verme arayüzlerini kullanır.
 - Kitap arama: Kitabın ismine ya da ISBN numarasına göre arama yapılabilir.
-- Kitap Alma: Kitap 1 haftalık süre ile kullanıcının üstüne atanır. Başkasının üstünde bulunan kitap sistem tarafından verilemez. Kullanıcı üstünde en fazla 3 kitap bulunabilir. Kullanıcının üzerinde teslim tarihi geçmiş kitap var ise kullanıcı başka kitap alamaz. Yeni kitap alabilmesi için teslim tarihi geçmiş tüm kitapları sisteme geri vermelidir.
+- Kitap Alma: Kitap **1 haftalık** süre ile kullanıcının üstüne atanır. **Başkasının üstünde bulunan kitap** sistem tarafından verilemez. Kullanıcı üstünde **en fazla 3 kitap** bulunabilir. **Kullanıcının üzerinde teslim tarihi geçmiş kitap var ise kullanıcı başka kitap alamaz**. Yeni kitap alabilmesi için teslim tarihi geçmiş tüm kitapları sisteme **geri vermelidir**.
 - Kitap Verme: Kullanıcı kitabın ISBN numarasının bulunduğu resmi sisteme yükler. Sistem resimden aldığı ISBN numarasını ve kullanıcının üzerinde bulunan kitaplardaki ISBN numarasını karşılaştırır. Eşleştirme bulursa kitap sisteme geri verilir ve kullanıcının üstündeki kitap bilgileri güncellenir.
 
 #### Veritabanı (Database)
- Kullanıcı bilgileri, kitap bilgileri, hangi kitabın kimde
+Kullanıcı bilgileri, kitap bilgileri, hangi kitabın kimde
 olduğu bilgisi vb. bilgileri tutar. Uygulamanız için gerekli tablolar geliştiriciye
 bırakılmıştır.
 
@@ -44,8 +56,9 @@ bırakılmıştır.
 - Kullanıcı, kitabı verirken kitabın resmini sisteme yüklemesi gerekmektedir.
 
 #### sorulacak sorular 
+- bir kitabın birden fazla isbnsi olabilirmi ?
 - login sistemi guvenlik onlemleri
 - form evaluationları onemlimi
 
-#### proje raporu 
+#### ödev raporu 
 [ödev raporu](https://www.mrkaurelius.xyz/pdf/yazlab2p1.pdf)

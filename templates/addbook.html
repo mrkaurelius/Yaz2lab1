@@ -5,6 +5,7 @@
     if data passed print data
 -->
 
+
 {% block content %}
     <h2><a href="{{ url_for('admin_root') }}">home</a></h2>
 
@@ -16,4 +17,14 @@
     <input type=file name=file>
     <input type=submit value=Upload>
   </form>
+
+  <table style="width:100%">
+    {% for book in books %}
+      <tr>
+        <th>{{ book['isbn'] }}</th>
+        <th>{{ book['title'] }}</th>
+        <th>{{ book['filename'] }}</th>
+      </tr>
+    {% endfor %}
+  </table>
 {% endblock %}

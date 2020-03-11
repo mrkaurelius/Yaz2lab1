@@ -17,6 +17,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from imprc import readisbn
+import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'such secret'    
@@ -25,18 +26,18 @@ app.config['SECRET_KEY'] = 'such secret'
 engine = create_engine('postgresql+psycopg2://mrk0:qazwsxedc@localhost/yazlab3')
 
 # TODO: 
-# build basic mechanism for auth
-# fix admin user login
+# build basic mechanism for chehcing auth
 @app.route('/')
 def home():
+    # TODO:
     # if user logged in redirect /user
     # if admin logged in redirect /admin
-    # dont need non-auth home
     return render_template('home.html')
 
 @app.route('/admin')
 # admin root
 def admin_root():
+    # TODO: print arttime
     return render_template('admin.html')
 
 @app.route('/admin/login', methods=('GET', 'POST'))
@@ -78,43 +79,52 @@ def admin_logout():
     #return 'adminlogout'    
 
 @app.route('/admin/addbook',methods=('GET', 'POST'))
-# book image required
-# TODO: check admin
-# implement different methods
+# TODO: check if user admin
 def add_book():
     if request.method == 'POST':
         f = request.files['file']
         f_extension = f.filename.split(".")[-1]
         f.filename = uuid1().__str__() + "." + f_extension
         f.save('./uploads/' + secure_filename(f.filename))
-        
+        booktitle = request.form['title']        
         isbn = readisbn(f.filename)
         if isbn is None:
             # pass info about upload status
-            return render_template('addbook.html')
+            return render_template('addbook.html', books = list_books_db())
         else:
-            # add book entr to database
             # pass info about upload status
-            return render_template('addbook.html')
+            addbook_db(booktitle,isbn,f.filename)
+            return render_template('addbook.html', books = list_books_db())
 
-    return render_template('addbook.html')
+    return render_template('addbook.html', books = list_books_db())
 
 @app.route('/admin/forwardtime')
 def forward_time():
-    # no need html
+    # redundant redirect
+    # get arttime increase timestamp and change arttime
+    sql_string = 'SELECT timeis FROM arttime ORDER BY timeis DESC LIMIT 1'
+    con = engine.connect()
+    arttime = con.execute(sql_string).fetchone()['timeis']
+    #print(arttime)
+    new_arttime = arttime + datetime.timedelta(days=20)
+    #print(new_arttime)
+    sql_string = "INSERT INTO arttime (timeis) VALUES( '"+ str(new_arttime) +"')"
+    con.execute(sql_string)
     return redirect(url_for('admin_root'))
  
 @app.route('/admin/listuser')
 # list borrowed books also
 def list_user():
-    return 'listuser'
+    return render_template('listuser.html', users = list_users_db())
 
 @app.route('/user')
 # user root
 def user_root():
-    # user login ?
-    # TODO: check user logged
-    return render_template('user.html',username = session['username'])
+    # TODO:
+    # check user logged
+    borrowed_books = list_borrowed_books_db(session['username'])
+    print(borrowed_books)
+    return render_template('user.html',username = session['username'], borrowed_books = borrowed_books )
 
 @app.route('/user/login', methods=('GET', 'POST'))
 def user_login():
@@ -151,17 +161,53 @@ def user_logout():
     session.clear()
     return redirect(url_for("home"))
 
-@app.route('/user/querybook')
+@app.route('/user/querybook', methods=('GET', 'POST'))
+# TODO:
+# list only available books
 def query_book():
-    return 'querybook'
+    if request.method == 'POST':
+        # handle form data
+        # check isbn or title 
+        print("debug",request.form['isbn'])
+        if len(request.form['isbn']) == 0  and isinstance(request.form['title'], str):
+            return render_template('querybook.html', books = list_book_by_title_db(request.form['title']))
+        # 9789754589276
+        elif len(request.form['title']) == 0  and isinstance(request.form['isbn'], str):
+            return render_template('querybook.html', books = list_book_by_isbn_db(request.form['isbn']))
+        else:
+            render_template('querybook.html')
 
-@app.route('/user/borrowbook')
+    return render_template('querybook.html')
+
+@app.route('/user/borrowbook', methods=('GET', 'POST'))
+# BURADA KALDIM
+# TODO:
+# check borrowing available
+# check book available
+# print errors
 def borrow_book():
-    return 'borrowbook'  
+    borrowed_books = list_borrowed_books_db(session['username'])
+    if request.method == "POST":
+        # evaluate form data
+        pass
+        
+        render_template('borrowbook.html', borrowed_books = borrowed_books)
+
+    return render_template('borrowbook.html', borrowed_books = borrowed_books)  
 
 @app.route('/user/returnbook')
 def return_book():
     return 'returnbook'  
+
+def check_book_available(bookname):
+    # give book according to title not isbn, id handle problems
+    pass
+
+def check_user_permitted(username):
+    # check user book count
+    pass
+
+####################################################################################
 
 @app.route('/json/books')
 def getallbooks():
@@ -183,12 +229,102 @@ def getallusers():
             ret.append(dict(row))
     return jsonify(ret) 
 
-@app.route('/json/db')
-def db_dummy():
-    # username password check
-    ret = []
+@app.route('/json/borrowedbooks')
+def getallborrowedbooks():
+    return jsonify([]) 
+
+####################################################################################
+
+def addbook_db(booktitle, bookisbn, imgfilename):
+    # TODO: test
     with engine.connect() as con:
-        rows = con.execute("select * from users")
-        for row in rows:
-            ret.append(dict(row))
-    return jsonify(ret) 
+        data = ( { "isbn": bookisbn, "title": booktitle, "img_filname": imgfilename } )
+        con.execute(text("""INSERT INTO books (isbn, title, img_filname) 
+            VALUES(:isbn, :title, :img_filname)"""), data)
+
+def list_books_db():
+    # for addbooks
+    # TODO: test
+    with engine.connect() as con:
+        res = con.execute("select isbn, title, img_filname from books").fetchall()
+        ret = []
+        for i in res:
+            ret.append({ "isbn": i['isbn'], "title": i['title'], "filename":i['img_filname'] })
+        return ret
+
+def list_users_db():
+    # TODO
+    # test
+    with engine.connect() as con:
+        ret = []
+        res = con.execute(
+                """ SELECT users.username, books.title, booksinuse.borrow_date
+                    FROM booksinuse 
+                    INNER JOIN users ON users.id = booksinuse.user_id
+                    INNER JOIN books ON books.id = booksinuse.book_id """).fetchall()
+        for i in res:
+            #print(i)
+            ret.append({ "username": i['username'], "title":i['title'], "borrow_date": i['borrow_date'] })
+
+        res = con.execute(
+                """ SELECT username 
+                    FROM users 
+                    WHERE username 
+                    NOT IN (
+                        SELECT users.username
+                        FROM booksinuse 
+                        INNER JOIN users ON users.id = booksinuse.user_id
+                        INNER JOIN books ON books.id = booksinuse.book_id
+                    ) AND user_role != 0; """).fetchall()
+        for i in res:
+            #print(i)
+            ret.append({ "username": i['username']})
+        print(ret)
+        return ret
+
+def list_borrowed_books_db(username):
+    # for user home page
+    # TODO: 
+    # test
+    with engine.connect() as con:
+        data = ( { "username": username } )
+        res = con.execute(text(
+                """ SELECT  books.title, booksinuse.borrow_date
+                    FROM booksinuse 
+                    INNER JOIN users ON users.id = booksinuse.user_id
+                    INNER JOIN books ON books.id = booksinuse.book_id
+                    where username = (:username) """), data).fetchall()
+        ret = []
+        for i in res:
+            #print(i)
+            ret.append({ "title":i['title'], "borrow_date": i['borrow_date'] })
+        return ret
+
+def list_book_by_title_db(booktitle):
+    # for user home page
+    # TODO: 
+    # list only available books
+    # smart search 
+    with engine.connect() as con:
+        data = ( { "title": booktitle } )
+        res = con.execute(text(
+                """ SELECT title, isbn FROM books WHERE title = (:title) """), data).fetchall()
+        ret = []
+        for i in res:
+            #print(i)
+            ret.append({ "title":i['title'], "isbn": i['isbn'] })
+        return ret
+
+def list_book_by_isbn_db(isbn):
+    # for user home page
+    # TODO: 
+    # list only available books
+    with engine.connect() as con:
+        data = ( { "isbn": isbn } )
+        res = con.execute(text(
+                """ SELECT title, isbn FROM books WHERE isbn = (:isbn) """), data).fetchall()
+        ret = []
+        for i in res:
+            #print(i)
+            ret.append({ "title":i['title'], "isbn": i['isbn'] })
+        return ret

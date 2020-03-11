@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2><a href="{{ url_for('user_root') }}">home</a></h2>
+
+  <form method=post>
+    <label for="title">book title</label>
+    <input name="title" id="title">
+ 
+    <label for="isbn">book isbn</label>
+    <input name="isbn" id="isbn">
+ 
+    <input type=submit value=query>
+  </form>
+
+  <table style="width:100%">
+    {% for book in borrowed_books %}
+      <tr>
+        <th>{{ book['title'] }}</th>
+        <th>{{ book['borrow_date'] }}</th>
+      </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}
