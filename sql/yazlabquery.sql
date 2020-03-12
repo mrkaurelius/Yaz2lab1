@@ -16,7 +16,7 @@ CREATE TABLE booksinuse(
     id SERIAL,
     book_id SERIAL NOT NULL,
     user_id SERIAL NOT NULL,
-    borrow_date timestamp NOT NULL,
+    return_date timestamp NOT NULL,
     PRIMARY KEY(id, book_id)
 );
 */
@@ -25,13 +25,15 @@ CREATE TABLE booksinuse(
 --debug query
 
 /*
-SELECT users.username, books.title, booksinuse.borrow_date
+SELECT users.username, books.title, booksinuse.return_date
 FROM booksinuse 
 INNER JOIN users ON users.id = booksinuse.user_id
 INNER JOIN books ON books.id = booksinuse.book_id
 where users.username = 'asdf';
 */
 
+
+-- list all users and borrowed books
 /*
 SELECT username 
 FROM users 
@@ -45,12 +47,34 @@ NOT IN (
 */
 
 /*
-SELECT users.username, books.title, booksinuse.borrow_date
+SELECT users.username, books.title, booksinuse.return_date
 FROM booksinuse 
 INNER JOIN users ON users.id = booksinuse.user_id
 INNER JOIN books ON books.id = booksinuse.book_id
 */
 
-SELECT timeis FROM arttime ORDER BY timeis DESC LIMIT 1;
+-- available books
+/*
+SELECT title, isbn
+FROM books
+WHERE isbn
+NOT IN (
+    SELECT books.isbn
+    FROM books 
+    INNER JOIN booksinuse ON books.id = booksinuse.book_id
+    );
+*/
 
-INSERT INTO arttime (timeis) VALUES('2020-04-15');
+-- user borrowed book count
+/*
+SELECT COUNT(u.username)
+FROM users u
+INNER JOIN booksinuse biu ON u.id = biu.user_id
+WHERE u.username = 'mrk'
+*/
+
+-- user return date
+SELECT biu.return_date
+FROM users u
+INNER JOIN booksinuse biu ON u.id = biu.user_id
+WHERE u.username = 'mrk'

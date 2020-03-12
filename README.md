@@ -60,5 +60,16 @@ bırakılmıştır.
 - login sistemi guvenlik onlemleri
 - form evaluationları onemlimi
 
+#### cevaplar 
+- bir kitabin bir isbnsi 
+- bir kitaptan bir tane
+- barkod okumak yok rakamlari tanımak gerekli 
+- sunucunun tarihini degistirmek gerekli
+- auth onemli degil
+- veritabanı yapisni gozden gecir
+
+#### criticism
+- daha akıllı bir arama meodu olabilirdi (isbn ve kitap adı birlikte)
+
 #### ödev raporu 
 [ödev raporu](https://www.mrkaurelius.xyz/pdf/yazlab2p1.pdf)

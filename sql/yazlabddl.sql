@@ -1,14 +1,15 @@
 DROP TABLE IF EXISTS books;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS booksinuse;
-DROP TABLE IF EXISTS arttime;
 
 CREATE TABLE books(
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     isbn VARCHAR(13) NOT NULL,
     title VARCHAR(200) NOT NULL,
-    img_filname VARCHAR(255) NOT NULL
+    img_filname VARCHAR(255) NOT NULL,
+    PRIMARY KEY(isbn) --one book for one isbn
 );
+--reconsider img_filname
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
@@ -24,11 +25,6 @@ CREATE TABLE booksinuse(
     id SERIAL,
     book_id SERIAL NOT NULL,
     user_id SERIAL NOT NULL,
-    borrow_date timestamp NOT NULL,
-    PRIMARY KEY(id, book_id)
-);
-
--- howto use timetstaps in postgres
-CREATE TABLE arttime(
-    timeis timestamp
+    return_date timestamp NOT NULL,
+    PRIMARY KEY(book_id) -- one book for one title
 );

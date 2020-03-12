@@ -10,14 +10,14 @@
     <label for="isbn">book isbn</label>
     <input name="isbn" id="isbn">
  
-    <input type=submit value=query>
+    <input type=submit value=borrow>
   </form>
 
   <table style="width:100%">
     {% for book in borrowed_books %}
       <tr>
         <th>{{ book['title'] }}</th>
-        <th>{{ book['borrow_date'] }}</th>
+        <th>{{ book['return_date'] }}</th>
       </tr>
     {% endfor %}
   </table>

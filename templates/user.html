@@ -12,7 +12,7 @@
     {% for book in borrowed_books %}
       <tr>
         <th>{{ book['title'] }}</th>
-        <th>{{ book['borrow_date'] }}</th>
+        <th>{{ book['return_date'] }}</th>
       </tr>
     {% endfor %}
   </table>
