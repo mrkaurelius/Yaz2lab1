@@ -17,17 +17,20 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from imprc import readisbn
+
 import datetime
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'such secret'    
 #app.config['UPLOAD_FOLDER'] = './uploads'
 
-engine = create_engine('postgresql+psycopg2://mrk0:qazwsxedc@localhost/yazlab3')
+engine = create_engine('postgresql+psycopg2://mrk1:qazwsxedc@localhost/yazlab3')
 
 # TODO: 
+# backend over do tests
 # do flash error, warnings
-# dont expire sessions 
+# experiment whit improc
 
 @app.route('/')
 def home():
@@ -36,9 +39,12 @@ def home():
 @app.route('/admin')
 # admin root
 def admin_root():
+    print("asdf")
     # TODO:
     # print time
-    return render_template('admin.html')
+    now = datetime.datetime.now().strftime("%Y-%m-%d")
+    print(now)
+    return render_template('admin.html', now = now)
 
 @app.route('/admin/login', methods=('GET', 'POST'))
 # do admin login
@@ -65,7 +71,7 @@ def admin_login():
             session['user_id'] = user['id']
             session['username'] = username
             #flash("haluya giris yaptın" + username)
-            return redirect('/admin')
+            return redirect(url_for('admin_root'))
         flash(error)
 
     return render_template('login.html')
@@ -80,14 +86,16 @@ def admin_logout():
 
 @app.route('/admin/addbook',methods=('GET', 'POST'))
 def add_book():
-    # TODO: check if user admin (no need)
+    # TODO:
+    # pass info about upload status
+
     if request.method == 'POST':
         f = request.files['file']
         f_extension = f.filename.split(".")[-1]
         f.filename = uuid1().__str__() + "." + f_extension
         f.save('./uploads/' + secure_filename(f.filename))
-        booktitle = request.form['title']        
         isbn = readisbn(f.filename)
+        booktitle = request.form['title']        
         if isbn is None:
             # pass info about upload status
             return render_template('addbook.html', books = list_books_db())
@@ -102,11 +110,17 @@ def add_book():
 def forward_time():
     # TODO: 
     # chage system time
+    now = datetime.datetime.now()
+    new_date = now + datetime.timedelta(days=20)
+    command_string = "sudo date +%Y-%m-%d -s " + new_date.strftime("%Y-%m-%d")
+    os.system(command_string)
+    print(url_for('admin_root'))
     return redirect(url_for('admin_root'))
  
 @app.route('/admin/listuser')
 # list borrowed books also
 def list_user():
+    now = datetime.datetime.now().strftime("%Y-%m-%d")
     return render_template('listuser.html', users = list_users_db())
 
 @app.route('/user')
@@ -154,8 +168,6 @@ def user_logout():
     return redirect(url_for("home"))
 
 @app.route('/user/querybook', methods=('GET', 'POST'))
-# TODO:
-# list all books
 def query_book():
     # search for all books
     if request.method == 'POST':
@@ -173,43 +185,56 @@ def query_book():
 
 # if have time refactor other evaluations to this
 # logic can be improved
+# control flow can be improved to prevent code duplication
 @app.route('/user/borrowbook', methods=('GET', 'POST'))
-# TODO:
-# check user permitted
-# check book available
-# print errors use flash
 def borrow_book():
     borrowed_books = list_borrowed_books_db(session['username'])
+    available_books = list_available_books_db()
     if request.method == "POST":
         username = session['username']
         isbn = request.form['isbn']
         title = request.form['title']
 
-        # search by title
-        if len(isbn) == 0  and len(title) > 0:
+        if len(isbn) > 0 and len(title) > 0:
+            flash("use only title or isbn")
+        elif len(isbn) > 0  or len(title) > 0:
+            
             if check_user_permitted(username) == False:
-                return render_template('borrowbook.html', borrowed_books = borrowed_books)
+                return render_template('borrowbook.html', borrowed_books = borrowed_books, available_books= available_books)
 
-            if check_book_available(title) == False:
-                return render_template('borrowbook.html', borrowed_books = borrowed_books)
+            if check_book_available(title, isbn) == False:
+                return render_template('borrowbook.html', borrowed_books = borrowed_books, available_books= available_books)
 
             # give book to user !
-            print('succes')
+            if len(isbn) > 0:
+                book_id = get_book_id_by_isbn_db(isbn)
+            else:
+                book_id = get_book_id_by_title_db(title)
+            
+            # now = get_now_db() backup option
+            # get datetime + 7 day
+            now = datetime.datetime.now()
+            return_date = now + datetime.timedelta(days=7)
+            user_id = session['user_id']
+            print("user_id: ", user_id)
+            print("now: ", now)
+            print("return_date: ", return_date)
+            # TODO: 
+            # test control flow and crud
+            # check output no best practice for control flow
+            give_book_to_user_db(book_id,return_date,user_id)
+            #print('succes')
             flash('succes')
+            
             borrowed_books = list_borrowed_books_db(session['username'])
-            render_template('borrowbook.html', borrowed_books = borrowed_books)
+            available_books = list_available_books_db()
+            render_template('borrowbook.html', borrowed_books = borrowed_books, available_books= available_books)
+            #return redirect(url_for('borrow_book'))
 
-        # search by isbn
-        elif len(title) == 0  and len(isbn) > 0:
-            # not impelemented
-            return redirect(url_for('borrow_book'))
+        elif len(isbn) == 0  and len(title) == 0:
+            flash('empty form')
 
-        else:
-            flash("use only title or isbn")
-        
-
-    return render_template('borrowbook.html', borrowed_books = borrowed_books)  
-
+    return render_template('borrowbook.html', borrowed_books = borrowed_books, available_books= available_books)  
 
 def check_user_permitted(username):
     # check user book count
@@ -230,26 +255,56 @@ def check_user_permitted(username):
         flash('have overdued book')
         return False
 
-def check_book_available(title):
-    # BURADA KALDIM
+def check_book_available(title, isbn):
     available_books = list_available_books_db()
     print(available_books)
     for book in available_books:
-        #print(book,type(book),book['title'], book['isbn'])
+        print(book['isbn'],type(book['isbn']))
         if book['title'] == title:
             print('book available: ', title)
             return True
-    flash_str = 'cat find book: ' + title
+        if book['isbn'] == isbn:
+            print('book available: ', isbn)
+            return True
+    
+    flash_str = 'cant find book: ' + title + "," + isbn + " or in use"
     flash(flash_str)
     print(flash_str)
     return False
 
-@app.route('/user/returnbook')
+@app.route('/user/returnbook', methods=('GET', 'POST'))
+# TODO: 
+# upload img
 def return_book():
-    # TODO:
-    # upload img
-    # build mechanism for user input
-    return 'returnbook'  
+    borrowed_books = list_borrowed_books_db(session['username'])
+    if request.method == "POST":
+        username = session['username']
+        
+        f = request.files['file'] # werkzeug filestorage
+        f_extension = f.filename.split(".")[-1]
+        f.filename = uuid1().__str__() + "." + f_extension
+        f.save('./uploads/' + secure_filename(f.filename))
+        img_isbn = readisbn(f.filename)    
+        
+        if img_isbn is None:
+            print('cant detect isbn')
+            flash('cant detect isbn')
+            return redirect(url_for('return_book'))
+        else:
+            # check user borrowed that book 
+            print(img_isbn)
+            for book in borrowed_books:
+                if book['isbn'] == img_isbn:
+                    # return book db
+                    print('book returned')
+                    flash('book returned')
+                    return_book_db(img_isbn)
+                    break
+
+        return redirect(url_for('return_book'))
+
+    return render_template('returnbook.html', borrowed_books = borrowed_books)
+
 
 ####################################################################################
 
@@ -279,12 +334,7 @@ def getallborrowedbooks():
 
 ####################################################################################
 
-def addbook_db(booktitle, bookisbn, imgfilename):
-    # TODO: test
-    with engine.connect() as con:
-        data = ( { "isbn": bookisbn, "title": booktitle, "img_filname": imgfilename } )
-        con.execute(text("""INSERT INTO books (isbn, title, img_filname) 
-            VALUES(:isbn, :title, :img_filname)"""), data)
+
 
 def list_books_db():
     # for addbooks
@@ -330,14 +380,14 @@ def list_borrowed_books_db(username):
     with engine.connect() as con:
         data = ( { "username": username } )
         res = con.execute(text(
-                """ SELECT  books.title, booksinuse.return_date
+                """ SELECT  books.title, books.isbn, booksinuse.return_date
                     FROM booksinuse 
                     INNER JOIN users ON users.id = booksinuse.user_id
                     INNER JOIN books ON books.id = booksinuse.book_id
                     where username = (:username) """), data).fetchall()
         ret = []
         for i in res:
-            ret.append({ "title":i['title'], "return_date": i['return_date'] })
+            ret.append({ "title":i['title'], "return_date": i['return_date'], "isbn": i['isbn'] })
         return ret
 
 def list_book_by_title_db(booktitle):
@@ -399,6 +449,26 @@ def get_borrowed_count_db(username):
         for i in res:
             return i['count']
 
+def get_book_id_by_title_db(title):
+    # TODO: test
+    with engine.connect() as con:
+        data = ( { "title": title } )
+        res = con.execute(text(
+            """ SELECT id FROM books WHERE title = :title """), data).fetchall()
+        for i in res:
+            #print(i['id'])
+            return i['id']
+
+def get_book_id_by_isbn_db(isbn):
+    # TODO: test
+    with engine.connect() as con:
+        data = ( { "isbn": isbn } )
+        res = con.execute(text(
+            """ SELECT id FROM books WHERE isbn = :isbn """), data).fetchall()
+        for i in res:
+            #print(i['id'])
+            return i['id']
+
 def check_overdued_book_db(username):
     # TODO: test
     with engine.connect() as con:
@@ -425,5 +495,35 @@ def check_overdued_book_db(username):
             print('return date: ', date)
             if now > date:
                 return False
-
         return True
+
+def give_book_to_user_db(book_id, return_date, user_id):
+    with engine.connect() as con:
+        data = ( { "book_id": book_id, "return_date": return_date, "user_id": user_id } )
+        con.execute(text("""INSERT INTO booksinuse (book_id, return_date, user_id) 
+            VALUES(:book_id, :return_date, :user_id)"""), data)
+
+def return_book_db(isbn):
+    # TODO: 
+    # test
+    book_id = get_book_id_by_isbn_db(isbn)
+    #print(book_id)
+    
+    with engine.connect() as con:
+        data = ({ "book_id": book_id })
+        con.execute(text("""DELETE FROM booksinuse WHERE book_id = :book_id :"""), data)
+    pass
+
+def addbook_db(booktitle, bookisbn, imgfilename):
+    # TODO: test
+    with engine.connect() as con:
+        data = ( { "isbn": bookisbn, "title": booktitle, "img_filname": imgfilename } )
+        con.execute(text("""INSERT INTO books (isbn, title, img_filname) 
+            VALUES(:isbn, :title, :img_filname)"""), data)
+
+# returns datetime 
+# not used
+def get_now_db():
+    with engine.connect() as con:
+        res = con.execute("SELECT NOW()").fetchone()
+        return res

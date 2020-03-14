@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 
-<!--
-    if data passed print data
--->
 
 {% block header %}
+
+  <h2>admin</h1>
+  <h3>{{ now }}</h3>
+
+
   <h2><a href="{{ url_for('add_book') }}">add book</a></h2>
   <h2><a href="{{ url_for('forward_time') }}">forward time</a></h2>
   <h2><a href="{{ url_for('list_user') }}">list user</a></h2>

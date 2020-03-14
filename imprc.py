@@ -5,7 +5,7 @@ def readisbn(filename):
      image = cv2.imread('./uploads/' + filename)
      detectedBarcodes = decode(image)
      for barcode in detectedBarcodes:
-          print(barcode.data)
+          # print(barcode.data)
           return(barcode.data.decode("utf-8"))
      # print("barcode not detected!")
      return None

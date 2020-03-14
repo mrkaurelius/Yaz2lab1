@@ -12,6 +12,7 @@
     {% for book in borrowed_books %}
       <tr>
         <th>{{ book['title'] }}</th>
+        <th>{{ book['isbn'] }}</th>
         <th>{{ book['return_date'] }}</th>
       </tr>
     {% endfor %}

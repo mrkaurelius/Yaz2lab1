@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2><a href="{{ url_for('user_root') }}">home</a></h2>
+
+  <form method=post enctype=multipart/form-data> 
+    <label for="file">book isbn image</label>
+    <input type=file name=file>
+    <input type=submit value="return book">
+
+    <!--  
+    <input type=submit value=return required>
+    <input name="isbn" id="isbn" required>
+    -->
+  </form>
+
+  <hr>
+  <h1>borrowed books</h1>
+
+  <table style="width:100%">
+    {% for book in borrowed_books %}
+      <tr>
+        <th>{{ book['title'] }}</th>
+        <th>{{ book['isbn'] }}</th>
+        <th>{{ book['return_date'] }}</th>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

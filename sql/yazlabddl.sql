@@ -26,5 +26,5 @@ CREATE TABLE booksinuse(
     book_id SERIAL NOT NULL,
     user_id SERIAL NOT NULL,
     return_date timestamp NOT NULL,
-    PRIMARY KEY(book_id) -- one book for one title
+    PRIMARY KEY(book_id) --one book for one isbn
 );

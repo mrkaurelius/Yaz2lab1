@@ -7,19 +7,18 @@ uyduruk görüntü işlemeli sözde kütüphane otomasyonu
 - opencv
 - postgresql
 - pyzbar
+- pigar (requirements.txt)
+- sqlalchemy (sadece raw sql, ORM kullanılmadı)
 
 ### TODO
-#### basic login mechanism
-#### understand request data flow
-#### templates
-#### database time zone ?
+#### improc
 
 ### snippets 
 postgres cli tool
 ```bash
 $ psql -d yazlab3 -h localhost -U mrk0
 ```
-sqlalchemy raw sql bulk query, bindig
+sqlalchemy raw SQL query, bindig
 ```python
     with engine.connect() as con:
         data = ( { "Id": 1, "Name": "Audi", "Price": 52642 },
@@ -66,10 +65,11 @@ bırakılmıştır.
 - barkod okumak yok rakamlari tanımak gerekli 
 - sunucunun tarihini degistirmek gerekli
 - auth onemli degil
-- veritabanı yapisni gozden gecir
 
-#### criticism
+#### eleştiri
 - daha akıllı bir arama meodu olabilirdi (isbn ve kitap adı birlikte)
+- sembol isimlendirme daha anlaşılır, teamullere uygun olabilirdi
+- kontrol yapısı daha akıllıca insa edilebilirdi
 
 #### ödev raporu 
 [ödev raporu](https://www.mrkaurelius.xyz/pdf/yazlab2p1.pdf)

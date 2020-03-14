@@ -13,13 +13,30 @@
     <input type=submit value=borrow>
   </form>
 
+  <hr>
+  <h1>borrowed books</h1>
+
   <table style="width:100%">
     {% for book in borrowed_books %}
       <tr>
         <th>{{ book['title'] }}</th>
+        <th>{{ book['isbn'] }}</th>
         <th>{{ book['return_date'] }}</th>
       </tr>
     {% endfor %}
   </table>
+
+  <hr>
+  <h1>available books</h1>
+
+  <table style="width:100%">
+    {% for book in available_books %}
+      <tr>
+        <th>{{ book['title'] }}</th>
+        <th>{{ book['isbn'] }}</th>
+      </tr>
+    {% endfor %}
+  </table>
+
 
 {% endblock %}
