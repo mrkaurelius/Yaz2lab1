@@ -39,7 +39,6 @@ def home():
 @app.route('/admin')
 # admin root
 def admin_root():
-    print("asdf")
     # TODO:
     # print time
     now = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -98,10 +97,12 @@ def add_book():
         booktitle = request.form['title']        
         if isbn is None:
             # pass info about upload status
+            flash('cant detect isbn')
             return render_template('addbook.html', books = list_books_db())
         else:
             # pass info about upload status
             addbook_db(booktitle,isbn,f.filename)
+            flash('book added')
             return render_template('addbook.html', books = list_books_db())
 
     return render_template('addbook.html', books = list_books_db())
@@ -259,7 +260,7 @@ def check_book_available(title, isbn):
     available_books = list_available_books_db()
     print(available_books)
     for book in available_books:
-        print(book['isbn'],type(book['isbn']))
+        # print(book['isbn'],type(book['isbn']))
         if book['title'] == title:
             print('book available: ', title)
             return True
@@ -299,12 +300,13 @@ def return_book():
                     print('book returned')
                     flash('book returned')
                     return_book_db(img_isbn)
-                    break
+                    return redirect(url_for('return_book'))
+            flash('isbn dont match with borrwed books isbn')
+            print('isbn dont match with borrwed books isbn')
 
         return redirect(url_for('return_book'))
 
     return render_template('returnbook.html', borrowed_books = borrowed_books)
-
 
 ####################################################################################
 
@@ -333,8 +335,6 @@ def getallborrowedbooks():
     return jsonify([]) 
 
 ####################################################################################
-
-
 
 def list_books_db():
     # for addbooks
@@ -511,7 +511,7 @@ def return_book_db(isbn):
     
     with engine.connect() as con:
         data = ({ "book_id": book_id })
-        con.execute(text("""DELETE FROM booksinuse WHERE book_id = :book_id :"""), data)
+        con.execute(text("""DELETE FROM booksinuse WHERE book_id = :book_id"""), data)
     pass
 
 def addbook_db(booktitle, bookisbn, imgfilename):

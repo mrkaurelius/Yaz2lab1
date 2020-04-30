@@ -1,23 +1,24 @@
 INSERT INTO books (title, isbn, img_filname ) VALUES (
-    'code complete', '9783860635933','dummypath.jpg'
+    'the ultimate guide for vocabulary', '9786058962620','dummypath.jpg'
 );
 
+INSERT INTO books (title, isbn, img_filname ) VALUES (
+    'beyaz geceler', '9786053321392','dummypath.jpg'
+);
+
+INSERT INTO books (title, isbn, img_filname ) VALUES (
+    'harry potter ve sirlar odasi', '9789750802959','dummypath.jpg'
+);
+
+/*
 INSERT INTO books (title, isbn, img_filname ) VALUES (
     'milletlerin zenginligi', '9789754589276','dummypath.jpg'
 );
 
 INSERT INTO books (title, isbn, img_filname ) VALUES (
-    'harry potter ve felsefe tası', '9789750802942','dummypath.jpg'
+    'uluslarin dususu', '9786050918120','dummypath.jpg'
 );
-
-INSERT INTO books (title, isbn, img_filname ) VALUES (
-    'vakıf', '9786053757375','dummypath.jpg'
-);
-
-INSERT INTO books (title, isbn, img_filname ) VALUES (
-    'akıllı yatırımcı', '9786051733838','dummypath.jpg'
-);
-
+*/
 INSERT INTO users (user_role, username, passwdsha256) VALUES (0,'admin',
 'pbkdf2:sha256:150000$6AEOAf3p$6b529daad6f61ba05b5a431979b1370047eca33c654d0262adc25a0b18316d0e');
 -- "1234"
@@ -47,5 +48,5 @@ INSERT INTO users (user_role, username, passwdsha256) VALUES (1,'deniz',
 -- "2929"
 
 --mrk id: 2
-INSERT INTO booksinuse (book_id, user_id, return_date ) VALUES (1,2,'2020-04-11');
-INSERT INTO booksinuse (book_id, user_id, return_date ) VALUES (2,2,'2020-04-11');
+INSERT INTO booksinuse (book_id, user_id, return_date ) VALUES (1,2,'2020-05-5');
+INSERT INTO booksinuse (book_id, user_id, return_date ) VALUES (2,2,'2020-05-5');

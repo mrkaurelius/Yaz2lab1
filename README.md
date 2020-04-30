@@ -20,14 +20,25 @@ $ psql -d yazlab3 -h localhost -U mrk0
 ```
 sqlalchemy raw SQL query, bindig
 ```python
-    with engine.connect() as con:
-        data = ( { "Id": 1, "Name": "Audi", "Price": 52642 },
-                { "Id": 3, "Name": "Skoda", "Price": 9000 },
-        )
-        for line in data:
-            con.execute(text("""INSERT INTO Cars(Id, Name, Price) 
-                VALUES(:Id, :Name, :Price)"""), **line)
-        return ''
+with engine.connect() as con:
+    data = ( { "Id": 1, "Name": "Audi", "Price": 52642 },
+            { "Id": 3, "Name": "Skoda", "Price": 9000 },
+    )
+    for line in data:
+        con.execute(text("""INSERT INTO Cars(Id, Name, Price) 
+            VALUES(:Id, :Name, :Price)"""), **line)
+    return ''
+```
+opencv-python
+```python 
+color = (255,0,0)
+thickness = 10 # px
+cv2.rectangle(image, (x, y), (x_org+w, y_org+h), color, thickness) #inplace
+```
+
+postgres command line cheats
+``` 
+
 ```
 
 #### Yönetici (Admin):
